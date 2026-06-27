@@ -4,8 +4,8 @@ import java.util.Random;
 
 public final class Rotor {
 
-    private final int[] forwardMap = new int[256];
-    private final int[] reverseMap = new int[256];
+    private final byte[] forwardMap = new byte[256];
+    private final byte[] reverseMap = new byte[256];
     private final int turnoverPoint;
     private final int initialPosition;
     private int position;
@@ -17,16 +17,16 @@ public final class Rotor {
         this.position = this.initialPosition;
 
         for (int i = 0; i < 256; i++) {
-            forwardMap[i] = i;
+            forwardMap[i] = (byte) i;
         }
         for (int i = 255; i > 0; i--) {
             int j = rand.nextInt(i + 1);
-            int temp = forwardMap[i];
+            byte temp = forwardMap[i];
             forwardMap[i] = forwardMap[j];
             forwardMap[j] = temp;
         }
         for (int i = 0; i < 256; i++) {
-            reverseMap[forwardMap[i]] = i;
+            reverseMap[forwardMap[i] & 0xFF] = (byte) i;
         }
     }
 
@@ -35,11 +35,11 @@ public final class Rotor {
     }
 
     public int encrypt(int c) {
-        return forwardMap[(c + position) & 0xFF];
+        return forwardMap[(c + position) & 0xFF] & 0xFF;
     }
 
     public int decrypt(int c) {
-        return (reverseMap[c] - position) & 0xFF;
+        return ((reverseMap[c] & 0xFF) - position) & 0xFF;
     }
 
     public void rotate() {
