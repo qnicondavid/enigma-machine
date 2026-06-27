@@ -10,8 +10,8 @@ import java.util.Random;
 public final class EnigmaMachine {
 
     private final List<Rotor> rotors;
-    private final Reflector reflector;
-    private final Plugboard plugboard;
+    private final Involution reflector;
+    private final Involution plugboard;
 
     public EnigmaMachine(int seed, int rotorCount) {
         if (rotorCount < 1) {
@@ -24,8 +24,8 @@ public final class EnigmaMachine {
             built.add(new Rotor(seed + i, initialPosition));
         }
         this.rotors = built;
-        this.reflector = new Reflector(seed);
-        this.plugboard = new Plugboard(~seed);
+        this.reflector = new Involution(seed);
+        this.plugboard = new Involution(~seed);
     }
 
     public static EnigmaMachine fromPassword(String password, int rotorCount) {
@@ -51,15 +51,15 @@ public final class EnigmaMachine {
             step();
 
             int c = input[i] & 0xFF;
-            c = plugboard.swap(c);
+            c = plugboard.apply(c);
             for (Rotor rotor : rotors) {
                 c = rotor.encrypt(c);
             }
-            c = reflector.reflect(c);
+            c = reflector.apply(c);
             for (int j = rotors.size() - 1; j >= 0; j--) {
                 c = rotors.get(j).decrypt(c);
             }
-            c = plugboard.swap(c);
+            c = plugboard.apply(c);
             output[i] = (byte) c;
         }
         return output;
