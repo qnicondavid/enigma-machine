@@ -16,19 +16,17 @@ public final class Rotor {
         this.initialPosition = Math.floorMod(initialPosition, 256);
         this.position = this.initialPosition;
 
-        int[] wiring = new int[256];
         for (int i = 0; i < 256; i++) {
-            wiring[i] = i;
+            forwardMap[i] = i;
         }
         for (int i = 255; i > 0; i--) {
             int j = rand.nextInt(i + 1);
-            int temp = wiring[i];
-            wiring[i] = wiring[j];
-            wiring[j] = temp;
+            int temp = forwardMap[i];
+            forwardMap[i] = forwardMap[j];
+            forwardMap[j] = temp;
         }
         for (int i = 0; i < 256; i++) {
-            forwardMap[i] = wiring[i];
-            reverseMap[wiring[i]] = i;
+            reverseMap[forwardMap[i]] = i;
         }
     }
 
