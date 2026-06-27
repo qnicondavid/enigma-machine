@@ -1,0 +1,80 @@
+package com.enigma;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+public final class EnigmaMachine {
+
+    private final List<Rotor> rotors;
+    private final Reflector reflector;
+    private final Plugboard plugboard;
+
+    public EnigmaMachine(int seed, int rotorCount) {
+        if (rotorCount < 1) {
+            throw new IllegalArgumentException("rotorCount must be >= 1");
+        }
+        List<Rotor> built = new ArrayList<>();
+        Random rand = new Random(seed);
+        for (int i = 0; i < rotorCount; i++) {
+            int initialPosition = rand.nextInt(256);
+            built.add(new Rotor(seed + i, initialPosition));
+        }
+        this.rotors = built;
+        this.reflector = new Reflector(seed);
+        this.plugboard = new Plugboard(~seed);
+    }
+
+    public static EnigmaMachine fromPassword(String password, int rotorCount) {
+        return new EnigmaMachine(password.hashCode(), rotorCount);
+    }
+
+    public String encrypt(String text) {
+        byte[] out = transform(text.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(out);
+    }
+
+    public String decrypt(String base64) {
+        byte[] out = transform(Base64.getDecoder().decode(base64));
+        return new String(out, StandardCharsets.UTF_8);
+    }
+
+    public byte[] transform(byte[] input) {
+        for (Rotor rotor : rotors) {
+            rotor.reset();
+        }
+        byte[] output = new byte[input.length];
+        for (int i = 0; i < input.length; i++) {
+            step();
+
+            int c = input[i] & 0xFF;
+            c = plugboard.swap(c);
+            for (Rotor rotor : rotors) {
+                c = rotor.encrypt(c);
+            }
+            c = reflector.reflect(c);
+            for (int j = rotors.size() - 1; j >= 0; j--) {
+                c = rotors.get(j).decrypt(c);
+            }
+            c = plugboard.swap(c);
+            output[i] = (byte) c;
+        }
+        return output;
+    }
+
+    private void step() {
+        for (Rotor rotor : rotors) {
+            rotor.rotate();
+            if (!rotor.atTurnover()) {
+                break;
+            }
+        }
+    }
+
+    public List<Rotor> rotors() {
+        return Collections.unmodifiableList(rotors);
+    }
+}
