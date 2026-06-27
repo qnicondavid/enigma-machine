@@ -43,10 +43,18 @@ public final class EnigmaMachine {
     }
 
     public byte[] transform(byte[] input) {
+        byte[] output = new byte[input.length];
+        transform(input, output);
+        return output;
+    }
+
+    public void transform(byte[] input, byte[] output) {
+        if (output.length < input.length) {
+            throw new IllegalArgumentException("output buffer too small");
+        }
         for (Rotor rotor : rotors) {
             rotor.reset();
         }
-        byte[] output = new byte[input.length];
         for (int i = 0; i < input.length; i++) {
             step();
 
@@ -62,7 +70,6 @@ public final class EnigmaMachine {
             c = plugboard.apply(c);
             output[i] = (byte) c;
         }
-        return output;
     }
 
     private void step() {

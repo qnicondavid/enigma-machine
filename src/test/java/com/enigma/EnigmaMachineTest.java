@@ -74,6 +74,28 @@ class EnigmaMachineTest {
     }
 
     @Test
+    void transformIntoBufferMatchesAllocating() {
+        EnigmaMachine m = machine("buffer");
+        byte[] input = "reuse this buffer".getBytes(StandardCharsets.UTF_8);
+        byte[] expected = m.transform(input);
+        byte[] output = new byte[input.length + 32];
+        m.transform(input, output);
+        for (int i = 0; i < input.length; i++) {
+            assertEquals(expected[i], output[i]);
+        }
+    }
+
+    @Test
+    void transformRejectsUndersizedBuffer() {
+        EnigmaMachine m = machine("buffer");
+        try {
+            m.transform(new byte[10], new byte[5]);
+            assertTrue(false, "expected IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    @Test
     void rotorCountMustBePositive() {
         try {
             new EnigmaMachine(123, 0);

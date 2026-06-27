@@ -28,6 +28,7 @@ public class TransformBenchmark {
 
     private EnigmaMachine machine;
     private byte[] payload;
+    private byte[] reuseBuffer;
 
     @Setup(Level.Trial)
     public void setup() {
@@ -36,10 +37,17 @@ public class TransformBenchmark {
         for (int i = 0; i < payload.length; i++) {
             payload[i] = (byte) (i & 0xFF);
         }
+        reuseBuffer = new byte[messageSize];
     }
 
     @Benchmark
     public byte[] transform() {
         return machine.transform(payload);
+    }
+
+    @Benchmark
+    public byte[] transformReusingBuffer() {
+        machine.transform(payload, reuseBuffer);
+        return reuseBuffer;
     }
 }
